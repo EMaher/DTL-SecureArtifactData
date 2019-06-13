@@ -98,42 +98,30 @@
     },
     "githubRepoUrl": {
       "type": "string",
-      "defaultValue": "https://github.com/RogerBestMsft/DTL-SecureArtifactData.git",
+      "defaultValue": "https://github.com/EMaher/DTL-SecureArtifactData.git",
       "metadata": {
         "description": "Public GitHub repo url."
       }
     },
     "githubBranch": {
       "type": "string",
-      "defaultValue": "NoServicePrincipal",
+      "defaultValue": "emaher/userDrive",
       "metadata": {
         "description": "Public GitHub repo branch name."
       }
     },
     "DTLArtifactName": {
       "type": "string",
-      "defaultValue": "Auto Join Active Directory (AD) domain",
+      "defaultValue": "Create User Mounted Drive",
       "metadata": {
         "description": "DevTest Lab Artifact Title."
       }
     },
     "DTLArtifactFolder": {
       "type": "string",
-      "defaultValue": "windows-domain-join-secure",
+      "defaultValue": "windows-user-drive",
       "metadata": {
         "description": "DevTest Lab Artifact Folder."
-      }
-    },
-    "DomainJoinId": {
-      "type": "string",
-      "metadata": {
-        "description" : "ID to join the AD Domain"
-      }
-    },
-    "DomainJoinSecret": {
-      "type": "securestring",
-      "metadata": {
-        "description": "Secret to join the AD Domain"
       }
     }
   },
@@ -177,31 +165,7 @@
             }
           }
         ]
-      },
-      "resources": [
-        {
-          "type": "secrets",
-          "name": "TestAccountUser",
-          "apiVersion": "2015-06-01",
-          "properties": {
-            "value": "[parameters('DomainJoinId')]"
-          },
-          "dependsOn": [
-            "[concat('Microsoft.KeyVault/vaults/', parameters('keyVaultName'))]"
-          ]
-        },
-        {
-          "type": "secrets",
-          "name": "TestAccountCredential",
-          "apiVersion": "2015-06-01",
-          "properties": {
-            "value": "[parameters('DomainJoinSecret')]"
-          },
-          "dependsOn": [
-            "[concat('Microsoft.KeyVault/vaults/', parameters('keyVaultName'))]"
-          ]
-        }      
-      ]
+      }
     },    
     {
       "type": "Microsoft.Storage/storageAccounts",

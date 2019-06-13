@@ -22,6 +22,7 @@
       "name": "[parameters('eventSubName')]",
       "apiVersion": "2018-01-01",
       "properties": {
+        "topic": "/subscriptions/e9f42ffd-4db4-4615-af21-617d96db0af2",
         "destination": {
           "endpointType": "WebHook",
           "properties": {
@@ -29,8 +30,7 @@
           }
         },
         "filter": {
-          "subjectBeginsWith": "",
-          "subjectEndsWith": "windows-domain-join-secure",
+          "subjectEndsWith": "windows-user-drive",
           "isSubjectCaseSensitive": false,
           "includedEventTypes": [ "All" ]
         }
