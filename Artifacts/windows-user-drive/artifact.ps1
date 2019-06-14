@@ -49,7 +49,7 @@ trap
 #
 # Main execution block.
 #
-$MaxRetries = 10
+$MaxRetries = 30
 $currentRetry = 0
 $success = $false
 $KeyVaultName = "fileB2kv"
