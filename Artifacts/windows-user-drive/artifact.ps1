@@ -78,7 +78,9 @@ do {
 
 		
         # Get credentials
-        $result = (Invoke-WebRequest -Uri "https://$KeyVaultName.vault.azure.net/secrets/TestAccountCredential?api-version=2016-10-01" -Method GET -Headers @{Authorization="Bearer $KeyVaultToken"} -UseBasicParsing).content
+		$requestUrl = "https://$KeyVaultName.vault.azure.net/secrets/TestAccountCredential?api-version=2016-10-01"
+		Write-Output $requestUrl
+        $result = (Invoke-WebRequest -Uri $requestUrl -Method GET -Headers @{Authorization="Bearer $KeyVaultToken"} -UseBasicParsing).content
         Write-Host "KeyVault value: $result"
 
 		<#
@@ -93,7 +95,7 @@ do {
 		#>
 
         #if (($DomainAdminUsername -ne $null) -and ($DomainAdminPassword -ne $null)) {
-		if ($DomainAdminPassword -ne $null) {
+		if (result -ne $null) {
             $success = $true
         }
         else {
