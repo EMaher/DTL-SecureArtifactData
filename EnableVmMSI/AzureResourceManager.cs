@@ -84,16 +84,15 @@ namespace EnableVmMSI
                         .SetQueryParams(expandProperty)
                         .GetStringAsync();
 
-                log.LogInformation("[EnableVmMSIFunction] After Get Lab URL:" + DateTime.Now.ToString());
-                log.LogInformation("[EnableVmMSIFunction] After Get Lab URL:" + response.ToString());
-
+                log.LogInformation("[EnableVmMSIFunction] After Get Lab URL: " + DateTime.Now.ToString() + " : " + response.ToString());
+               
                 JObject vmsObject = JObject.Parse(response);
 
-                log.LogInformation("[EnableVmMSIFunction] After Parsing objects:" + DateTime.Now.ToString());
+                log.LogInformation("[EnableVmMSIFunction] After Parsing objects:" + DateTime.Now.ToString() + ":" + vmsObject);
 
                 JArray vms = (JArray)vmsObject.SelectToken("value");
 
-                log.LogInformation("[EnableVmMSIFunction] After Parsing VMs:" + vms.Count.ToString() + " : " + DateTime.Now.ToString());
+                log.LogInformation("[EnableVmMSIFunction] After Parsing VMs: " + DateTime.Now.ToString() + ":" + vms.Count.ToString());
 
                 foreach (JToken lab in vms.Children())
                 {
@@ -101,15 +100,13 @@ namespace EnableVmMSI
                     int first = 0;
                     string labRg = "";
                     string labName = "";
-                    log.LogInformation("[EnableVmMSIFunction] For Each VM:" + DateTime.Now.ToString());
+                    log.LogInformation("[EnableVmMSIFunction] For Each VM: " + DateTime.Now.ToString());
                     // The vmCreationResourceGroupId is the property where the VMs are created.
                     JToken rgId = lab.SelectToken("$.properties.vmCreationResourceGroupId");
-                    log.LogInformation("[EnableVmMSIFunction] RG Id:" + DateTime.Now.ToString());
-                    log.LogInformation("[EnableVmMSIFunction] RG Id:" + rgId);
-
+                    log.LogInformation("[EnableVmMSIFunction] RG Id: " + DateTime.Now.ToString() + ":" + rgId);
+                   
                     if (rgId != null)
                     {
-
                         first = (rgId.ToString().IndexOf("resourceGroups/") + 15);
                         labRg = rgId.ToString().Substring(first, (rgId.ToString().Length - first));
 
@@ -160,7 +157,7 @@ namespace EnableVmMSI
                                 {
                                     counter++;
                                     await Task.Delay(timeSpan);
-                                    log.LogInformation("[EnableVmMSIFunction] Enable IMSI loop:" + DateTime.Now.ToString());
+                                    log.LogInformation("[EnableVmMSIFunction] Enable MSI loop: " + DateTime.Now.ToString() + ": counter=" + counter);
                                     await vm.RefreshAsync();
                                     if (counter == 20)
                                     {
@@ -173,7 +170,7 @@ namespace EnableVmMSI
                             await vm.RefreshAsync();
                             // Get the keyvault
                             var _keyVault = _msiazure.Vaults.GetByResourceGroup(vault.KeyVaultResourceGroup, vault.KeyVaultName);
-                            log.LogInformation("[EnableVmMSIFunction] Add KeyVault:" + DateTime.Now.ToString());
+                            log.LogInformation("[EnableVmMSIFunction] Add KeyVault: " + DateTime.Now.ToString());
                             // Add access policy
                             await _keyVault.Update()
                                 .DefineAccessPolicy()
@@ -182,7 +179,7 @@ namespace EnableVmMSI
                                 .Attach()
                                 .ApplyAsync();
                             // Remove after 5 min 
-                            log.LogInformation("[EnableVmMSIFunction] Cleanup:" + DateTime.Now.ToString());
+                            log.LogInformation("[EnableVmMSIFunction] Cleanup: " + DateTime.Now.ToString());
                             await RemoveAccess(vm, _keyVault, log);
                         }
                         catch (Exception e) {
@@ -221,6 +218,8 @@ namespace EnableVmMSI
                 }
 
             }
+
+            log.LogInformation("[EnableVmMSIFunction] Getting compute id " + computeId);
             return computeId; 
         }
 
@@ -231,7 +230,7 @@ namespace EnableVmMSI
             {
                 TimeSpan timeSpan = new TimeSpan(0, 5, 0);
                 await Task.Delay(timeSpan);
-                log.LogInformation("[EnableVmMSIFunction] Cleanup Delay finished:" + DateTime.Now.ToString());
+                log.LogInformation("[EnableVmMSIFunction] Cleanup Delay finished: " + DateTime.Now.ToString());
                 // Remove Access policy
                 await vault.Update()
                     .WithoutAccessPolicy(vm.SystemAssignedManagedServiceIdentityPrincipalId).ApplyAsync();
@@ -241,7 +240,7 @@ namespace EnableVmMSI
             }
             catch (Exception e)
             {
-                log.LogInformation("[EnableVmMSIFunction] Cleanup Error:" + e.Message);
+                log.LogInformation("[EnableVmMSIFunction] Cleanup Error: " + e.Message);
             }
         }
     }

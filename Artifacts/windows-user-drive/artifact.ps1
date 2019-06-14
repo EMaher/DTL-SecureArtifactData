@@ -99,7 +99,7 @@ do {
             $success = $true
         }
         else {
-            write-Host "KeyVault requests succeeded, but domain information is null."
+            write-Host "KeyVault requests succeeded, but information is null."
         }
     }
     catch {
