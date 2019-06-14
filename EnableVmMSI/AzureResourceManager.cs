@@ -168,6 +168,7 @@ namespace EnableVmMSI
                             }
 
                             await vm.RefreshAsync();
+                            log.LogInformation("[EnableVmMSIFunction] MSI applied: " + DateTime.Now.ToString() + ": vm=" + vm);
                             // Get the keyvault
                             var _keyVault = _msiazure.Vaults.GetByResourceGroup(vault.KeyVaultResourceGroup, vault.KeyVaultName);
                             log.LogInformation("[EnableVmMSIFunction] Add KeyVault: " + DateTime.Now.ToString());
@@ -179,7 +180,7 @@ namespace EnableVmMSI
                                 .Attach()
                                 .ApplyAsync();
                             // Remove after 5 min 
-                            log.LogInformation("[EnableVmMSIFunction] Cleanup: " + DateTime.Now.ToString());
+                            log.LogInformation("[EnableVmMSIFunction] Add KeyVault Completed: " + DateTime.Now.ToString());
                             await RemoveAccess(vm, _keyVault, log);
                         }
                         catch (Exception e) {
@@ -230,13 +231,14 @@ namespace EnableVmMSI
             {
                 TimeSpan timeSpan = new TimeSpan(0, 5, 0);
                 await Task.Delay(timeSpan);
-                log.LogInformation("[EnableVmMSIFunction] Cleanup Delay finished: " + DateTime.Now.ToString());
+                log.LogInformation("[EnableVmMSIFunction] Cleanup starting: " + DateTime.Now.ToString());
                 // Remove Access policy
                 await vault.Update()
                     .WithoutAccessPolicy(vm.SystemAssignedManagedServiceIdentityPrincipalId).ApplyAsync();
                 await vault.RefreshAsync();
                 // Remove VM identity
                 await vm.Update().WithoutSystemAssignedManagedServiceIdentity().ApplyAsync();
+                log.LogInformation("[EnableVmMSIFunction] Cleanup finished: " + DateTime.Now.ToString());
             }
             catch (Exception e)
             {
@@ -261,7 +263,7 @@ namespace EnableVmMSI
         public string KeyVaultName { get; set; }
         public string KeyVaultUri { get; set; }
         public string KeyVaultResourceGroup { get; set; }
-        public string KV_SecretName_ServicePrinciple { get; set; }
-        public string KV_SecretName_ServicePrinciplePwd { get; set; }
+        //public string KV_SecretName_ServicePrinciple { get; set; }
+        //public string KV_SecretName_ServicePrinciplePwd { get; set; }
     }
 }

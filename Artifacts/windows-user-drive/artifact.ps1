@@ -49,37 +49,38 @@ trap
 #
 # Main execution block.
 #
-$MaxRetries = 30
+$MaxRetries = 20
 $currentRetry = 0
 $success = $false
 $KeyVaultName = "fileB2kv"
 
 Write-Host "Start: " + $(Get-Date)
 
+if ($PSVersionTable.PSVersion.Major -lt 3)
+{
+    throw "The current version of PowerShell is $($PSVersionTable.PSVersion.Major). Prior to running this artifact, ensure you have PowerShell 3 or higher installed."
+}
+        
+
+Write-Host "Start: get vm identity"
+
+# Get KeyVault token as the VM identity       
+$response = Invoke-WebRequest -Uri 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https%3A%2F%2Fvault.azure.net' -Method GET -Headers @{Metadata="true"} -UseBasicParsing
+Write-Host "Success: get vm identity: " + $(Get-Date)
+$content = $response.Content | ConvertFrom-Json
+$KeyVaultToken = $content.access_token
+Write-Output "Token: $KeyVaultToken"
+
+Write-Host "End: get vm identity"
+
+$requestUrl = "https://$KeyVaultName.vault.azure.net/secrets/TestAccountCredential?api-version=2016-10-01"
+Write-Output $requestUrl
 
 do {
     try
     {
-        if ($PSVersionTable.PSVersion.Major -lt 3)
-        {
-            throw "The current version of PowerShell is $($PSVersionTable.PSVersion.Major). Prior to running this artifact, ensure you have PowerShell 3 or higher installed."
-        }
-        
 
-		Write-Host "Start: get vm identity"
-
-        # Get KeyVault token as the VM identity       
-        $response = Invoke-WebRequest -Uri 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https%3A%2F%2Fvault.azure.net' -Method GET -Headers @{Metadata="true"} -UseBasicParsing
-        Write-Host "Success: get vm identity: " + $(Get-Date)
-        $content = $response.Content | ConvertFrom-Json
-        $KeyVaultToken = $content.access_token
-
-		Write-Host "End: get vm identity"
-
-		
-        # Get credentials
-		$requestUrl = "https://$KeyVaultName.vault.azure.net/secrets/TestAccountCredential?api-version=2016-10-01"
-		Write-Output $requestUrl
+        # Get KeyVault value	
         $result = (Invoke-WebRequest -Uri $requestUrl -Method GET -Headers @{Authorization="Bearer $KeyVaultToken"} -UseBasicParsing).content
         Write-Host "KeyVault value: $result"
 
