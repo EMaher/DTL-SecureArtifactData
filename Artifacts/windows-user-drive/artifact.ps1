@@ -52,7 +52,7 @@ trap
 $MaxRetries = 10
 $currentRetry = 0
 $success = $false
-$KeyVaultName = "filelab6434"
+$KeyVaultName = "fileB2kv"
 
 Write-Host "Start: " + $(Get-Date)
 

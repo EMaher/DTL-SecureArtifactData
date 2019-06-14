@@ -30,19 +30,24 @@ namespace EnableVmMSI
         [FunctionName("EnableVmMSIFunction")]
         public static void Run([EventGridTrigger]EventGridEvent eventGridEvent, ILogger log)
         {
+            log.LogInformation("StaringVMSMSIFunction");
+
+            log.LogInformation("Getting keyvault information");
             // Get Environment variables.
             KeyVaultInformation djSecrets = new KeyVaultInformation();
             djSecrets.KeyVaultName = GetEnvironmentVariable("AzureKeyVaultName"); //azureKeyVaultName;
             djSecrets.KeyVaultUri = "https://" + djSecrets.KeyVaultName + ".vault.azure.net";
             djSecrets.KeyVaultResourceGroup = GetEnvironmentVariable("AzureKeyVaultResourceGroup");
-            djSecrets.KV_SecretName_ServicePrinciple = GetEnvironmentVariable("AzureServicePrincipalIdSecretName");
-            djSecrets.KV_SecretName_ServicePrinciplePwd = GetEnvironmentVariable("AzureServicePrincipalCredSecretName");
+            //djSecrets.KV_SecretName_ServicePrinciple = GetEnvironmentVariable("AzureServicePrincipalIdSecretName");
+           // djSecrets.KV_SecretName_ServicePrinciplePwd = GetEnvironmentVariable("AzureServicePrincipalCredSecretName");
 
             // Handle Azure Events
+            log.LogInformation("Check event to see if it is the one we expect");
             AzureResourceInformation resourceId = GetVmResourceId(eventGridEvent);
             
             if (!string.IsNullOrWhiteSpace(resourceId.ResourceUri))
             {
+                log.LogInformation("Found event.");
                 AzureResourceManager arm = new AzureResourceManager(resourceId, djSecrets, log);
             }
             log.LogInformation(eventGridEvent.Data.ToString());
