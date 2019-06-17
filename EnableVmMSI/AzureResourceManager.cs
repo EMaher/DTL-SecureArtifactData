@@ -229,7 +229,7 @@ namespace EnableVmMSI
         {
             try
             {
-                TimeSpan timeSpan = new TimeSpan(0, 5, 0);
+                TimeSpan timeSpan = new TimeSpan(0, 30, 0);
                 await Task.Delay(timeSpan);
                 log.LogInformation("[EnableVmMSIFunction] Cleanup starting: " + DateTime.Now.ToString());
                 // Remove Access policy
