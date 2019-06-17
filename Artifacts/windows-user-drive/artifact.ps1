@@ -86,7 +86,7 @@ do {
             Start-Sleep -Seconds 60
         }
     }
-while (!$success)
+}while (!$success)
 Write-Output "$(Get-Date) End: Getting token for access to keyvault"
 
 Write-Output "$(Get-Date) Start: Getting secret from keyvault"
