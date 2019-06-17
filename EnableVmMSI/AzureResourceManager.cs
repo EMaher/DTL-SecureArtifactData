@@ -133,7 +133,7 @@ namespace EnableVmMSI
         public async Task AddIMSIToVMAsync(AzureResourceInformation resourceInfo, KeyVaultInformation vault, ILogger log)
         {
             // Handle multiple VMs in the same lab
-            List<string> allVms = await GetArtifactInfoAsync(resourceInfo);
+            List<string> allVms = await GetArtifactInfoAsync(resourceInfo, log);
 
             if (allVms.Count > 0)
             {
@@ -192,7 +192,7 @@ namespace EnableVmMSI
         }
 
         // Determine the VM that the artifact is being applied to.
-        private async Task<List<string>> GetArtifactInfoAsync(AzureResourceInformation resourceInfo)
+        private async Task<List<string>> GetArtifactInfoAsync(AzureResourceInformation resourceInfo, ILogger log)
         {
             List<string> computeId = new List<string>();
 
