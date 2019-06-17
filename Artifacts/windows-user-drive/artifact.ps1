@@ -99,11 +99,8 @@ do{
 		Write-Output $requestUrl
 
         # Get KeyVault value	
-        $result = (Invoke-WebRequest -Uri $requestUrl -Method GET -Headers @{Authorization="Bearer $KeyVaultToken"} -UseBasicParsing).content
-        Write-Host "KeyVault value: $result"
-		if (result -ne $null) {
-            $success = $true
-        }
+        $secret1value = Invoke-WebRequest -Uri $requestUrl -Method GET -Headers @{Authorization="Bearer $KeyVaultToken"} -UseBasicParsing | ConvertFrom-Json | select -expand value
+	    Write-Host "KeyVault value: $secret1value"
 
 		<#
         # Get Account
