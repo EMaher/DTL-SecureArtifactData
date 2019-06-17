@@ -59,9 +59,13 @@ if ($subInformation -eq $null){
 Write-Output $"Using context '$(Get-AzContext).Name'"
 
 # Create the resource group  
-Write-Verbose "Creating resource groups for lab and system"
-New-AzResourceGroup -Name $devTestLabRG -Location $systemLocation 
-New-AzResourceGroup -Name $systemRG -Location $systemLocation 
+Write-Verbose "Creating resource groups for lab and system, if needed"
+if ((Get-AzResourceGroup -name $devTestLabRG -ErrorAction:SilentlyContinue) -eq $null){
+	New-AzResourceGroup -Name $devTestLabRG -Location $systemLocation 
+}
+if ((Get-AzResourceGroup -name $systemRG -ErrorAction:SilentlyContinue) -eq $null){
+	New-AzResourceGroup -Name $systemRG -Location $systemLocation 
+}
 
 $systemlocalFile = Join-Path $PSScriptRoot -ChildPath "DeploySystem - NoSP.json"
 $lablocalFile = Join-Path $PSScriptRoot -ChildPath "DeployDTLab - NoSP.json"
@@ -104,6 +108,8 @@ $adminTokenHeader = @{ "Authorization" = "Bearer " + $adminBearerToken }
 $masterKeys = Invoke-RestMethod -Method Get -Uri $masterKeyUri -Headers $adminTokenHeader
 
 Write-Output "Creating Event grid"
-New-AzDeployment -Location $systemLocation -TemplateFile $gridlocalFile -eventSubName $($baseSystemName + "grid") -endpoint "https://$($baseSystemName)app.azurewebsites.net/runtime/webhooks/EventGrid?functionName=EnableVmMSIFunction&code=$($masterKeys.value)"
+$functionEndPoint = "https://$($baseSystemName)app.azurewebsites.net/runtime/webhooks/EventGrid?functionName=EnableVmMSIFunction&code=$($masterKeys.value)"
+Write-Verbose "Function EndPoint: $functionEndPoint"
+New-AzDeployment -Location $systemLocation -TemplateFile $gridlocalFile -eventSubName $($baseSystemName + "grid") -endpoint $functionEndPoint
 
 Write-Output "Completed."
