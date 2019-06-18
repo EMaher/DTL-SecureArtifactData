@@ -100,28 +100,9 @@ do{
 
         # Get KeyVault value	
         $secret1value = Invoke-WebRequest -Uri $requestUrl -Method GET -Headers @{Authorization="Bearer $KeyVaultToken"} -UseBasicParsing | ConvertFrom-Json | select -expand value
-	    Write-Host "KeyVault value: $secret1value"
+	  Write-Host "KeyVault value: $secret1value"
+	$success = $true
 
-		<#
-        # Get Account
-        $result = (Invoke-WebRequest -Uri "https://$KeyVaultName.vault.azure.net/secrets/TestAccountUser?api-version=2016-10-01" -Method GET -Headers @{Authorization="Bearer $KeyVaultToken"} -UseBasicParsing).content
-        $begin = $result.IndexOf("value") + 8
-        $endlength = ($result.IndexOf('"',$begin) -10)
-        $tempname = $result.Substring($begin,$endlength)
-        $DomainAdminUsername = $tempname.Replace("\\","\")
-        Write-Host "Account Name: $DomainAdminUsername"
-
-		#>
-
-        #if (($DomainAdminUsername -ne $null) -and ($DomainAdminPassword -ne $null)) {
-		<#
-		if (result -ne $null) {
-            $success = $true
-        }
-        else {
-            write-Host "KeyVault requests succeeded, but information is null."
-        }
-		#>
     }
     catch {
         $currentRetry = $currentRetry + 1
@@ -136,4 +117,3 @@ do{
     }
 } while (!$success)
 Write-Output "$(Get-Date) End: Getting secret from keyvault"
-
