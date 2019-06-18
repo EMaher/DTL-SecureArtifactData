@@ -194,7 +194,7 @@ namespace EnableVmMSI
         // Determine the VM that the artifact is being applied to.
         private async Task<List<string>> GetArtifactInfoAsync(AzureResourceInformation resourceInfo, ILogger log)
         {
-            List<string> computeId = new List<string>();
+            List<string> computeIdList = new List<string>();
 
             string[] expandProperty = new string[] {"$expand=properties($expand=artifacts)", "api-version=2018-10-15-preview"};
 
@@ -215,13 +215,13 @@ namespace EnableVmMSI
 
                 if ((targetVM != null) && (targetVM.HasValues)) 
                 {
-                    computeId.Add(vm.SelectToken("properties.computeId").Value<string>());
+                    computeIdList.Add(vm.SelectToken("properties.computeId").Value<string>());
                 }
 
             }
 
-            log.LogInformation("[EnableVmMSIFunction] Getting compute id " + computeId);
-            return computeId; 
+            log.LogInformation($"[EnableVmMSIFunction] Getting compute ids: {String.Join(",", computeIdList)}");
+            return computeIdList; 
         }
 
         // Remove the IMSI from the VM and the KeyVault Access policy
