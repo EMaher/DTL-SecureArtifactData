@@ -50,7 +50,7 @@ function Mount-FileShare($storageAccountName, $storageAccountKey, $shareName)
         $drive = Get-PSDrive ([char]$j) -ErrorAction SilentlyContinue
         if(!$drive)
         {
-            $potentialDriveLetter =  [char]$j 
+	    $potentialDriveLetter = [char]$j
             try {
             
                 $SecurePassword = ConvertTo-SecureString $storageAccountKey -AsPlainText -Force
