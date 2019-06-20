@@ -154,7 +154,6 @@ $storageAccountName = Get-KeyValueSecret -KeyVaultName $KeyVaultName -KeyVaultTo
 $storageAccountKey = Get-KeyValueSecret -KeyVaultName $KeyVaultName -KeyVaultToken $KeyVaultToken -SecretName 'DevFilesStorageAccountKey'
 Write-Output "$(Get-Date) End: Getting secret from keyvault"
 
-
 Write-Output "$(Get-Date) Mounting file share"
 Mount-FileShare -storageAccountName $storageAccountName -storageAccountKey $storageAccountKey -shareName $shareName
 
