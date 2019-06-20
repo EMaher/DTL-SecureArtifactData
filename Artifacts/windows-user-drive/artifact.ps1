@@ -43,25 +43,30 @@ trap
 #
 # Functions used in this script.
 #
-function MountFileShare($storageAccountName, $storageAccountKey, $shareName)
+function Mount-FileShare($storageAccountName, $storageAccountKey, $shareName)
 {
     for($j = 70; $j -lt 90; $j++)
-    {
+    {
         $drive = Get-PSDrive ([char]$j) -ErrorAction SilentlyContinue
         if(!$drive)
         {
-            $potentialDriveLetter =  [char]$j + ':'
+            $potentialDriveLetter =  [char]$j #+ ':'
  
-             try
-            {
-                net use $potentialDriveLetter "\\$storageAccountName.file.core.windows.net\$shareName" /u:\$storageAccountName $storageAccountKey | Out-Null
+             try {
+            
+                $SecurePassword = ConvertTo-SecureString $storageAccountKey -AsPlainText -Force
+                $Credential = New-Object System.Management.Automation.PSCredential ($storageAccountName, $SecurePassword)
+                 New-PSDrive -Name $potentialDriveLetter -PSProvider FileSystem -Root "\\$storageAccountName.file.core.windows.net\$shareName" -Persist -Credential $Credential -Scope Global
+            
+               # net use $potentialDriveLetter "\\$storageAccountName.file.core.windows.net\$shareName" /u:\$storageAccountName $storageAccountKey 
                 $driveLetter = $potentialDriveLetter
                 break
             }
             catch
             {
+                Write-Error  $_.Exception.Message
                 #eat exceptions here. We should choose another drive letter.
-                net use $potentialDriveletter /delete /y | Out-Null
+                Remove-PSDrive $potentialDriveletter -Force | Out-Null
             }
         }
     }
@@ -82,29 +87,26 @@ Function Get-KeyValueSecret($KeyVaultName, $KeyVaultToken, $SecretName)
 
 
     $requestUrl = "https://$KeyVaultName.vault.azure.net/secrets/$($SecretName)?api-version=2016-10-01"
-    Write-Output "Request url: $requestUrl"
+    Write-Host "Getting value for $requestUrl"
 
     while ($currentRetry -lt 40 -and $secretValue -eq $null)
     {
         try{
-
-
             # Get KeyVault value	
             $secretValue = Invoke-WebRequest -Uri $requestUrl -Method GET -Headers @{Authorization="Bearer $KeyVaultToken"} -UseBasicParsing | ConvertFrom-Json | select -expand value
-	        Write-Host "KeyVault value: $secretValue"
+	        #Write-Host "KeyVault value: $secretValue"
 
         }
         catch {
             $currentRetry = $currentRetry + 1
-            Write-Host "In catch $currentRetry $(Get-Date): $ErrorMessage = $($_.Exception.Message)"
+            #Write-Host "In catch $currentRetry $(Get-Date): $ErrorMessage = $($_.Exception.Message)"
             Start-Sleep -Seconds 60
-
         }
     }
     
     if ($currentRetry -eq 40) 
     { 
-        Write-Error "Could get $SecretName from $KeyVaultName after max retries"
+        Write-Error "Couldn't get $SecretName from $KeyVaultName after max retries"
     }
      
     return $secretValue
@@ -159,11 +161,11 @@ $success = $false
 $currentRetry = 0
 
 $shareName = 'enewman'
-$storageAccountName = $null
-$storageAccountKey = $null
-
-
 $storageAccountName = Get-KeyValueSecret -KeyVaultName $KeyVaultName -KeyVaultToken $KeyVaultToken -SecretName 'DevFilesStorageAccountName'
 $storageAccountKey = Get-KeyValueSecret -KeyVaultName $KeyVaultName -KeyVaultToken $KeyVaultToken -SecretName 'DevFilesStorageAccountKey'
+
+
+Mount-FileShare -storageAccountName $storageAccountName -storageAccountKey $storageAccountKey -shareName $shareName
+
 
 Write-Output "$(Get-Date) End: Getting secret from keyvault"
