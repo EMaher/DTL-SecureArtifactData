@@ -15,6 +15,8 @@ using Newtonsoft.Json.Linq;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Flurl.Http;
 using Flurl;
+using Microsoft.Azure.Management.Compute.Fluent;
+using Microsoft.Azure.Management.KeyVault.Fluent;
 
 namespace EnableVmMSI
 {
@@ -143,45 +145,19 @@ namespace EnableVmMSI
                     {
                         try
                         {
-                            var vm = await _msiazure.VirtualMachines.GetByIdAsync(vmResourceId);
+                            //Enable MSI for vm
+                            IVirtualMachine vm = await _msiazure.VirtualMachines.GetByIdAsync(vmResourceId);
+                            await EnableManagedIdentity(vm, log);
+                            
+                            // ApplyKevault Access.
+                            IVault _keyVault = _msiazure.Vaults.GetByResourceGroup(vault.KeyVaultResourceGroup, vault.KeyVaultName);
+                            await ApplyKeyvaultPolicy(_keyVault, vm, log);
 
-                            if (!vm.IsManagedServiceIdentityEnabled)
-                            {
-                                // Don't await this call as issue where hangs, handle manually below
-                                vm.Update().WithSystemAssignedManagedServiceIdentity().ApplyAsync();
-                                // Handle await manually.
-                                TimeSpan timeSpan = new TimeSpan(0, 0, 10);
-                                int counter = 0;
-                                await Task.Delay(timeSpan);
-                                while ((!vm.IsManagedServiceIdentityEnabled) || (String.IsNullOrEmpty(vm.SystemAssignedManagedServiceIdentityPrincipalId)))
-                                {
-                                    counter++;
-                                    await Task.Delay(timeSpan);
-                                    log.LogInformation("[EnableVmMSIFunction] Enable MSI loop: " + DateTime.Now.ToString() + ": counter=" + counter);
-                                    await vm.RefreshAsync();
-                                    if (counter == 20)
-                                    {
-                                        break;
-                                    }
-                                }
-
-                            }
-
-                            await vm.RefreshAsync();
-                            log.LogInformation("[EnableVmMSIFunction] MSI applied: " + DateTime.Now.ToString() + ": vm=" + vm);
-                            // Get the keyvault
-                            var _keyVault = _msiazure.Vaults.GetByResourceGroup(vault.KeyVaultResourceGroup, vault.KeyVaultName);
-                            log.LogInformation("[EnableVmMSIFunction] Add KeyVault: " + DateTime.Now.ToString());
-                            // Add access policy
-                            await _keyVault.Update()
-                                .DefineAccessPolicy()
-                                    .ForObjectId(vm.SystemAssignedManagedServiceIdentityPrincipalId)
-                                    .AllowSecretPermissions(SecretPermissions.Get)
-                                .Attach()
-                                .ApplyAsync();
-                            // Remove after 5 min 
-                            log.LogInformation("[EnableVmMSIFunction] Add KeyVault Completed: " + DateTime.Now.ToString());
-                            await RemoveAccess(vm, _keyVault, log);
+                            //automatically remove after set time
+                            TimeSpan timeSpan = new TimeSpan(0, 10, 0);
+                            await Task.Delay(timeSpan);
+                            await RemoveKeyVaultAccess(_keyVault, vm, log);
+                            await DisableMSI(vm, log);
                         }
                         catch (Exception e) {
                             log.LogInformation("[EnableVmMSIFunction][Error] " + e.Message);
@@ -190,6 +166,49 @@ namespace EnableVmMSI
                 }
             }
         }
+
+        private async Task ApplyKeyvaultPolicy(IVault kv, IVirtualMachine vm, ILogger log)
+        {
+
+            log.LogInformation("[EnableVmMSIFunction] Add KeyVault Policy Started: " + DateTime.Now.ToString());
+            // Add access policy
+            await kv.Update()
+                .DefineAccessPolicy()
+                    .ForObjectId(vm.SystemAssignedManagedServiceIdentityPrincipalId)
+                    .AllowSecretPermissions(SecretPermissions.Get)
+                .Attach()
+                .ApplyAsync();
+           log.LogInformation("[EnableVmMSIFunction] Add KeyVault Policy Completed: " + DateTime.Now.ToString());
+
+        }
+
+        private async Task<Boolean> EnableManagedIdentity(IVirtualMachine vm, ILogger log) {
+
+            log.LogInformation($"[EnableVmMSIFunction] Enable MSI start: {DateTime.Now.ToString()}: vm= {vm}, enabled?={vm.IsManagedServiceIdentityEnabled}");
+            if (!vm.IsManagedServiceIdentityEnabled)
+            {
+                // Don't await this call as issue where hangs, handle manually below
+                vm.Update().WithSystemAssignedManagedServiceIdentity().ApplyAsync();
+               
+                // Handle await manually.
+                TimeSpan timeSpan = new TimeSpan(0, 0, 10);
+                int counter = 0;
+                await Task.Delay(timeSpan);
+                while (counter < 20 && ((!vm.IsManagedServiceIdentityEnabled) || (String.IsNullOrEmpty(vm.SystemAssignedManagedServiceIdentityPrincipalId))))
+                {
+                    counter++;
+                    await Task.Delay(timeSpan);
+                    log.LogInformation("[EnableVmMSIFunction] Enable MSI loop: " + DateTime.Now.ToString() + ": counter=" + counter);
+                    await vm.RefreshAsync();
+                }
+
+            }
+
+            await vm.RefreshAsync();
+            log.LogInformation($"[EnableVmMSIFunction] Enable MSI end: {DateTime.Now.ToString()}: vm= {vm}, enabled?={vm.IsManagedServiceIdentityEnabled}");
+            return vm.IsManagedServiceIdentityEnabled;
+        }
+
 
         // Determine the VM that the artifact is being applied to.
         private async Task<List<string>> GetArtifactInfoAsync(AzureResourceInformation resourceInfo, ILogger log)
@@ -225,24 +244,35 @@ namespace EnableVmMSI
         }
 
         // Remove the IMSI from the VM and the KeyVault Access policy
-        private async Task RemoveAccess(Microsoft.Azure.Management.Compute.Fluent.IVirtualMachine vm, Microsoft.Azure.Management.KeyVault.Fluent.IVault vault, ILogger log)
+        private async Task RemoveKeyVaultAccess(IVault vault, IVirtualMachine vm, ILogger log)
         {
             try
             {
-                TimeSpan timeSpan = new TimeSpan(0, 30, 0);
-                await Task.Delay(timeSpan);
-                log.LogInformation("[EnableVmMSIFunction] Cleanup starting: " + DateTime.Now.ToString());
+                log.LogInformation("[EnableVmMSIFunction] Remove Keyvault starting: " + DateTime.Now.ToString());
                 // Remove Access policy
                 await vault.Update()
                     .WithoutAccessPolicy(vm.SystemAssignedManagedServiceIdentityPrincipalId).ApplyAsync();
                 await vault.RefreshAsync();
-                // Remove VM identity
-                await vm.Update().WithoutSystemAssignedManagedServiceIdentity().ApplyAsync();
-                log.LogInformation("[EnableVmMSIFunction] Cleanup finished: " + DateTime.Now.ToString());
             }
             catch (Exception e)
             {
-                log.LogInformation("[EnableVmMSIFunction] Cleanup Error: " + e.Message);
+                log.LogInformation("[EnableVmMSIFunction] Remove Keyvault Error: " + e.Message);
+            }
+        }
+
+        private async Task DisableMSI(IVirtualMachine vm, ILogger log)
+        {
+            try
+            {
+                log.LogInformation("[EnableVmMSIFunction] Disable MSI starting: " + DateTime.Now.ToString());
+
+                // Remove VM identity
+                await vm.Update().WithoutSystemAssignedManagedServiceIdentity().ApplyAsync();
+                log.LogInformation("[EnableVmMSIFunction] Disable MSI finished: " + DateTime.Now.ToString());
+            }
+            catch (Exception e)
+            {
+                log.LogInformation("[EnableVmMSIFunction] Disable MSI Error: " + e.Message);
             }
         }
     }
