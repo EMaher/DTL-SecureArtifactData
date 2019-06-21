@@ -253,11 +253,13 @@ namespace EnableVmMSI
                 await vault.Update()
                     .WithoutAccessPolicy(vm.SystemAssignedManagedServiceIdentityPrincipalId).ApplyAsync();
                 await vault.RefreshAsync();
+                log.LogInformation("[EnableVmMSIFunction] Remove Keyvault ending: " + DateTime.Now.ToString());
             }
             catch (Exception e)
             {
                 log.LogInformation("[EnableVmMSIFunction] Remove Keyvault Error: " + e.Message);
             }
+
         }
 
         private async Task DisableMSI(IVirtualMachine vm, ILogger log)
