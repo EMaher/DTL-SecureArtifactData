@@ -56,16 +56,16 @@ function Mount-FileShare($storageAccountName, $storageAccountKey, $shareName) {
                 break
             }
             catch {
-                �Remove-PSDrive $potentialDriveletter -Force | Out-Null
+                Remove-PSDrive $potentialDriveletter -Force | Out-Null
                 Write-Error  $_.Exception.Message
-                � 
+                
             }
         }
     }
-    �
+    
     if (!$driveLetter) {
         Write-Error 'Unable to mount file share because no drives were available'
-        � 
+        
     }
 
     return $driveLetter
