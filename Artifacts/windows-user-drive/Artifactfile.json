@@ -17,6 +17,6 @@
     }
   },
   "runCommand": {
-    "commandToExecute": "concat('powershell.exe -ExecutionPolicy bypass \"& ./artifact.ps1', ' -fileShareName \"', parameters('FileShareName'), '\"')]"
+    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy bypass \"& ./artifact.ps1', ' -fileShareName \"', parameters('FileShareName'), '\"')]"
     }
 }
