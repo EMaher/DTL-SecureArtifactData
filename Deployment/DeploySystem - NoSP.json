@@ -127,8 +127,8 @@
   },
   "variables": {
     "functionAppName": "[parameters('appName')]",
-    "hostingPlanName": "[parameters('appName')]",
-    "storageAccountName": "[concat(uniquestring(resourceGroup().id), 'appfunc')]"
+    "storageAccountName": "[concat(uniquestring(resourceGroup().id), 'appfunc')]",
+    "hostingplanName": "[concat(parameters('appName'), '-hp')]"
   },
   "resources": [
     {
@@ -178,6 +178,22 @@
       }
     },
     {
+      "name": "[variables('hostingplanName')]",
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2016-09-01",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "name": "[variables('hostingplanName')]",
+        "workerSizeId": "0",
+        "numberOfWorkers": "1",
+        "hostingEnvironment": ""
+      },
+      "sku": {
+        "Tier": "Standard",
+        "Name": "S1"
+    }
+    },
+    {
       "apiVersion": "2015-04-01",
       "type": "Microsoft.Web/sites",
       "name": "[variables('functionAppName')]",
@@ -190,6 +206,7 @@
         "name": "[variables('functionAppName')]",
         "clientAffinityEnabled": false,
         "reserved": false,
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingplanName'))]",
         "siteConfig": {
           "alwaysOn": false,
           "appSettings": [
@@ -241,6 +258,7 @@
         }
       },
       "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('hostingplanName'))]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
       ]
     },

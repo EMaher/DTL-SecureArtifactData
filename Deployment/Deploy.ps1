@@ -56,7 +56,7 @@ if ($subInformation -eq $null){
 	Write-Error "Could not get subscription information.  Run 'Set-AzContext' or pass in SubscriptionId after running Login-AzAccount"
 	return
 }
-Write-Output $"Using context '$((Get-AzContext).Name)'"
+Write-Output "Using context '$((Get-AzContext).Name)'"
 
 # Create the resource group  
 Write-Verbose "Creating resource groups for lab and system, if needed"

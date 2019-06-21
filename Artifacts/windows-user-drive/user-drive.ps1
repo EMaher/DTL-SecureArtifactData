@@ -49,7 +49,7 @@ function Mount-FileShare($storageAccountName, $storageAccountKey, $shareName) {
 
             try {
                 #save credentials to handle reboots
-                Invoke-Expression -Command "cmdkey /add:$storageAccountName.file.core.windows.net /user:Azure\$storageAccountName /pass:$storageAccountKey"
+                cmdkey /add:$storageAccountName.file.core.windows.net /user:Azure\$storageAccountName /pass:"$storageAccountKey"
 
                 $SecurePassword = ConvertTo-SecureString $storageAccountKey -AsPlainText -Force
                 $Credential = New-Object System.Management.Automation.PSCredential ($storageAccountName, $SecurePassword)
@@ -58,8 +58,8 @@ function Mount-FileShare($storageAccountName, $storageAccountKey, $shareName) {
                 break
             }
             catch {
-                Remove-PSDrive $potentialDriveletter -Force | Out-Null
-                Write-Error  $_.Exception.Message
+                #Remove-PSDrive $potentialDriveletter -Force | Out-Null
+                #Write-Output  $_.Exception.Message
                 
             }
         }
