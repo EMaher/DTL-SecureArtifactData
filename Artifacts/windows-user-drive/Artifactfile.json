@@ -8,7 +8,15 @@
   ],
   "iconUri": "",
   "targetOsType": "Windows",
+  "parameters": {
+    "FileShareName": {
+        "type": "string",
+        "displayName": "Name of file share",
+        "description": "Name of file share.",
+        "allowEmpty": false
+    }
+  },
   "runCommand": {
-    "commandToExecute": "powershell.exe -ExecutionPolicy bypass \"& ./artifact.ps1"
-  }
+    "commandToExecute": "concat('powershell.exe -ExecutionPolicy bypass \"& ./artifact.ps1', ' -fileShareName \"', parameters('FileShareName'), '\"')]"
+    }
 }
