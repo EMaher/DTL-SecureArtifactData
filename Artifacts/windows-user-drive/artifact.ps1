@@ -78,7 +78,7 @@ Function Get-KeyValueSecret($KeyVaultName, $KeyVaultToken, $SecretName) {
     $requestUrl = "https://$KeyVaultName.vault.azure.net/secrets/$($SecretName)?api-version=2016-10-01"
     Write-Host "Getting value for $requestUrl"
 
-    while ($currentRetry -lt 40 -and $null -eq $secretValue) {
+    while ($currentRetry -lt 10 -and $null -eq $secretValue) {
         try {
             # Get KeyVault value	
             $secretValue = Invoke-WebRequest -Uri $requestUrl -Method GET -Headers @{Authorization = "Bearer $KeyVaultToken" } -UseBasicParsing | ConvertFrom-Json | select -expand value
@@ -102,7 +102,7 @@ Function Get-KeyValueSecret($KeyVaultName, $KeyVaultToken, $SecretName) {
 #
 # Main execution block.
 #
-$MaxRetries = 40
+$MaxRetries = 10
 $currentRetry = 0
 
 $KeyVaultName = "fileB2kv"

@@ -152,7 +152,7 @@ namespace EnableVmMSI
                             await ApplyKeyvaultPolicy(_keyVault, vm, log);
 
                             //automatically remove after set time
-                            TimeSpan timeSpan = new TimeSpan(0, 5, 0);
+                            TimeSpan timeSpan = new TimeSpan(0, 7, 0);
                             await Task.Delay(timeSpan);
                             await RemoveKeyVaultAccess(_keyVault, vm, log);
                             await DisableMSI(vm, log);
