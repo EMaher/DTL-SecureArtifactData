@@ -18,9 +18,7 @@ Contains the function app code to enable the VM identity and add the Key Vault a
     - Create file shares for each developer. Add tag with developer name for tracking later.
 1. Add secret to keyvault 'DevFilesStorageAccountName' to '{baseSystemName}kv' which is the name of the storage account that hold developer file shares.
 1. Add secret to keyvault 'DevFilesStorageAccountKey' to '{baseSystemName}kv' which is key to the storage account that hold developer file shares.
-
-
-1. Modify DevTest Lab instance to have secret with developer fileshare name.
+1. Modify DevTest Lab so each developer has a secret called 'DevShareName' with the name of their fileshare.
 
 
 

@@ -42,31 +42,33 @@ trap {
 # Functions used in this script.
 #
 function Mount-FileShare($storageAccountName, $storageAccountKey, $shareName) {
-    for ($j = 70; $j -lt 90; $j++) {
-        $drive = Get-PSDrive ([char]$j) -ErrorAction SilentlyContinue
-        if (!$drive) {
-            $potentialDriveLetter = [char]$j 
- 
+    for ($j = 70; $j -lt 90; $j++) {
+        $drive = Get-PSDrive ([char]$j) -ErrorAction SilentlyContinue
+        if (!$drive) {
+            $potentialDriveLetter = [char]$j 
+
             try {
             
                 $SecurePassword = ConvertTo-SecureString $storageAccountKey -AsPlainText -Force
                 $Credential = New-Object System.Management.Automation.PSCredential ($storageAccountName, $SecurePassword)
-                New-PSDrive -Name $potentialDriveLetter -PSProvider FileSystem -Root "\\$storageAccountName.file.core.windows.net\$shareName" -Persist -Credential $Credential -Scope Global  
-                $driveLetter = $potentialDriveLetter
-                break
-            }
-            catch {
-                Remove-PSDrive $potentialDriveletter -Force | Out-Null
+                New-PSDrive -Name $potentialDriveLetter -PSProvider FileSystem -Root "\\$storageAccountName.file.core.windows.net\$shareName" -Persist -Credential $Credential -Scope Global
+                $driveLetter = $potentialDriveLetter
+                break
+            }
+            catch {
+                �Remove-PSDrive $potentialDriveletter -Force | Out-Null
                 Write-Error  $_.Exception.Message
-            }
-        }
-    }
- 
-    if (!$driveLetter) {
-        Write-Error 'Unable to mount file share because no drives were available'
-    }
- 
-    return $driveLetter
+                � 
+            }
+        }
+    }
+    �
+    if (!$driveLetter) {
+        Write-Error 'Unable to mount file share because no drives were available'
+        � 
+    }
+
+    return $driveLetter
 }
 
 Function Get-KeyValueSecret($KeyVaultName, $KeyVaultToken, $SecretName) {
