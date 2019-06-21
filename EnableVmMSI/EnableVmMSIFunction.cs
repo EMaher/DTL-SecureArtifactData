@@ -30,7 +30,7 @@ namespace EnableVmMSI
         [FunctionName("EnableVmMSIFunction")]
         public static void Run([EventGridTrigger]EventGridEvent eventGridEvent, ILogger log)
         {
-            log.LogInformation("StaringVMSMSIFunction");
+            log.LogInformation("Starting EnableVmMSIFunction");
 
             log.LogInformation("Getting keyvault information");
             // Get Environment variables.
@@ -47,10 +47,10 @@ namespace EnableVmMSI
             
             if (!string.IsNullOrWhiteSpace(resourceId.ResourceUri))
             {
-                log.LogInformation("Found event.");
+                log.LogInformation($"Found event for {resourceId.ResourceUri}");
                 AzureResourceManager arm = new AzureResourceManager(resourceId, djSecrets, log);
             }
-            log.LogInformation(eventGridEvent.Data.ToString());
+            log.LogInformation("Ending VMSMSIFunction:" + eventGridEvent.Data.ToString());
         }
 
         /*

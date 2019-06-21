@@ -145,6 +145,8 @@ namespace EnableVmMSI
                     {
                         try
                         {
+                            log.LogInformation($"[EnableVmMSIFunction] Found vm ({vmResourceId}) with appropriate artifact being applied. ");
+
                             //Enable MSI for vm
                             IVirtualMachine vm = await _msiazure.VirtualMachines.GetByIdAsync(vmResourceId);
                             await EnableManagedIdentity(vm, log);
