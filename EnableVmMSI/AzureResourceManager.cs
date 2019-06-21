@@ -79,40 +79,36 @@ namespace EnableVmMSI
             {
                 string[] expandProperty = new string[] { "api-version=2018-10-15-preview" };
 
-                log.LogInformation("[EnableVmMSIFunction] Before Get Lab URL:" + DateTime.Now.ToString());
+                log.LogInformation("[EnableVmMSIFunction] Getting Lab Name");
 
                 var response = await new Url($"https://management.azure.com/subscriptions/{resourceInfo.SubscriptionId}/providers/Microsoft.DevTestLab/labs")
                         .WithOAuthBearerToken(_accessToken)
                         .SetQueryParams(expandProperty)
                         .GetStringAsync();
 
-                log.LogInformation("[EnableVmMSIFunction] After Get Lab URL: " + DateTime.Now.ToString() + " : " + response.ToString());
+                //log.LogInformation("[EnableVmMSIFunction] After Get Lab URL: " + DateTime.Now.ToString() + " : " + response.ToString());
                
                 JObject vmsObject = JObject.Parse(response);
 
-                log.LogInformation("[EnableVmMSIFunction] After Parsing objects:" + DateTime.Now.ToString() + ":" + vmsObject);
+                //log.LogInformation("[EnableVmMSIFunction] After Parsing objects:" + DateTime.Now.ToString() + ":" + vmsObject);
 
                 JArray vms = (JArray)vmsObject.SelectToken("value");
 
-                log.LogInformation("[EnableVmMSIFunction] After Parsing VMs: " + DateTime.Now.ToString() + ":" + vms.Count.ToString());
+                //log.LogInformation("[EnableVmMSIFunction] After Parsing VMs: " + DateTime.Now.ToString() + ":" + vms.Count.ToString());
 
                 foreach (JToken lab in vms.Children())
                 {
 
                     int first = 0;
                     string labRg = "";
-                    string labName = "";
-                    log.LogInformation("[EnableVmMSIFunction] For Each VM: " + DateTime.Now.ToString());
                     // The vmCreationResourceGroupId is the property where the VMs are created.
                     JToken rgId = lab.SelectToken("$.properties.vmCreationResourceGroupId");
-                    log.LogInformation("[EnableVmMSIFunction] RG Id: " + DateTime.Now.ToString() + ":" + rgId);
+                    //log.LogInformation("[EnableVmMSIFunction] RG Id: " + DateTime.Now.ToString() + ":" + rgId);
                    
                     if (rgId != null)
                     {
                         first = (rgId.ToString().IndexOf("resourceGroups/") + 15);
                         labRg = rgId.ToString().Substring(first, (rgId.ToString().Length - first));
-
-                        log.LogInformation("[EnableVmMSIFunction] After labName:" + labName + " : " + DateTime.Now.ToString());
 
                         if (labRg == resourceInfo.LabResourceGroup)
                         {
@@ -241,7 +237,7 @@ namespace EnableVmMSI
 
             }
 
-            log.LogInformation($"[EnableVmMSIFunction] Getting compute ids: {String.Join(",", computeIdList)}");
+            log.LogInformation($"[EnableVmMSIFunction] Found Vms with artifact status of installed.  Compute ids: {String.Join(",", computeIdList)}");
             return computeIdList; 
         }
 
