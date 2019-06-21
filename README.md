@@ -12,7 +12,7 @@ The system is set up so each developer can mount his/her file share.  However, s
     - {baseSystemName}kv - Keyvault to hold secrets that need to be accessed by artifact.
     - DevTest Lab instance
 1. Add artifact repository to created in first step.  See instrunctions at https://docs.microsoft.com/en-us/azure/lab-services/add-artifact-repository. 
-1. Change the hard-coded value for `$KeyVault` in `/Artifacts/windows-user-drive/user-drive.ps1` to be '{baseSystemName}kv'.  Push change to repository.
+1. Change the hard-coded value for `$KeyVault` in `/Artifacts/windows-user-drive/user-drive.ps1` and `/Artifacts/windows-user-drive/artifact.ps1` to be '{baseSystemName}kv'.  Push change to repository.
 1. Create storage account to be used for developer file shares.
     - Create file shares for each developer. Add tag with developer name for tracking later.
 1. Add secret to keyvault 'DevFilesStorageAccountName' to '{baseSystemName}kv' which is the name of the storage account that holds developer file shares.

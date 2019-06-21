@@ -237,8 +237,8 @@ namespace EnableVmMSI
                 }
 
             }
-
-            log.LogInformation($"[EnableVmMSIFunction] Found Vms with artifact status of installed.  Compute ids: {String.Join(",", computeIdList)}");
+            
+            log.LogInformation($"[EnableVmMSIFunction] Found {computeIdList.Count} Vms with artifact status of installed.  Compute ids: {String.Join(",", computeIdList)}");
             return computeIdList; 
         }
 
