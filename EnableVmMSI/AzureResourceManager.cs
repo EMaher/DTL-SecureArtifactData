@@ -153,6 +153,7 @@ namespace EnableVmMSI
 
                             //automatically remove after set time
                             TimeSpan timeSpan = new TimeSpan(0, 20, 0);
+                            log.LogInformation($"[EnableVmMSIFunction] Waiting {timeSpan.ToString()} until removing MSI.");
                             await Task.Delay(timeSpan);
                             await RemoveKeyVaultAccess(_keyVault, vm, log);
                             await DisableMSI(vm, log);
