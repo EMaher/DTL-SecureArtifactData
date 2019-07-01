@@ -1,10 +1,10 @@
 [CmdletBinding()]
 param
 (
-	[Parameter(Mandatory = $true)][string]$KeyVaultName,
+	[Parameter(Mandatory=$true)][string]$KeyVaultName,
 	[Parameter(Mandatory=$true)][string]$ShareName,
 	[Parameter(Mandatory=$true)][string]$UserName,
-	[Parameter(Mandatory=$true)][securestring]$Password
+	[Parameter(Mandatory=$true)][string]$Password
 )
 
 
@@ -154,8 +154,9 @@ Write-Output "$(Get-Date) Mounting file share"
 Mount-FileShare -storageAccountName $storageAccountName -storageAccountKey $storageAccountKey -shareName $ShareName
 
 Write-Output "$(Get-Date) Adding credentials to Developer's Profile so drive can successfully remount on connection"
-$SecurePassword = ConvertTo-SecureString $storageAccountKey
+$SecurePassword = ConvertTo-SecureString $Password -AsPlainText -Force
 $devCredential = New-Object System.Management.Automation.PSCredential ($UserName, $SecurePassword)
-Invoke-Expression -Command "cmdkey /add:$storageAccountName.file.core.windows.net /user:Azure\$storageAccountName /pass:$storageAccountKey"
+$cmdstring = "cmdkey /add:$storageAccountName.file.core.windows.net /user:Azure\$storageAccountName /pass:$storageAccountKey"
+Invoke-Command -ScriptBlock {Invoke-Expression $cmdstring} -Credential $devCredential -ComputerName $env:COMPUTERNAME
 
 
