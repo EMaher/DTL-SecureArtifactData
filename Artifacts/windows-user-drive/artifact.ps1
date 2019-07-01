@@ -154,6 +154,7 @@ Write-Output "$(Get-Date) Mounting file share"
 Mount-FileShare -storageAccountName $storageAccountName -storageAccountKey $storageAccountKey -shareName $ShareName
 
 Write-Output "$(Get-Date) Adding credentials to Developer's Profile so drive can successfully remount on connection"
+$SecurePassword = ConvertTo-SecureString $storageAccountKey
 $devCredential = New-Object System.Management.Automation.PSCredential ($UserName, $Password)
 Invoke-Expression -Command "cmdkey /add:$storageAccountName.file.core.windows.net /user:Azure\$storageAccountName /pass:$storageAccountKey"
 
