@@ -1,10 +1,10 @@
 [CmdletBinding()]
 param
 (
-	[param(Mandatory=$true)][string]KeyVaultName,
-	[param(Mandatory=$true)][string]ShareName,
-	[param(Mondatory=$true)][string]UserName,
-	[param(Mandatory=$true)][securestring]Password
+	[param(Mandatory=$true)][string]$KeyVaultName,
+	[param(Mandatory=$true)][string]$ShareName,
+	[param(Mondatory=$true)][string]$UserName,
+	[param(Mandatory=$true)][securestring]$Password
 )
 
 
