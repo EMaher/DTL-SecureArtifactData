@@ -1,7 +1,10 @@
 [CmdletBinding()]
 param
 (
-    [Parameter(Mandatory=$true)][string]$fileShareName
+	[param(Mandatory=$true)][string]KeyVaultName,
+	[param(Mandatory=$true)][string]ShareName,
+	[param(Mondatory=$true)][string]UserName,
+	[param(Mandatory=$true)][securestring]Password
 )
 
 
@@ -42,6 +45,36 @@ trap {
 #
 # Functions used in this script.
 #
+function Mount-FileShare($storageAccountName, $storageAccountKey, $ShareName) {
+    for ($j = 70; $j -lt 90; $j++) {
+        $drive = Get-PSDrive ([char]$j) -ErrorAction SilentlyContinue
+        if (!$drive) {
+            $potentialDriveLetter = [char]$j 
+
+            try {
+            
+                $SecurePassword = ConvertTo-SecureString $storageAccountKey -AsPlainText -Force
+                $Credential = New-Object System.Management.Automation.PSCredential ($storageAccountName, $SecurePassword)
+                New-PSDrive -Name $potentialDriveLetter -PSProvider FileSystem -Root "\\$storageAccountName.file.core.windows.net\$ShareName" -Persist -Credential $Credential -Scope Global
+                $driveLetter = $potentialDriveLetter
+                break
+            }
+            catch {
+                Remove-PSDrive $potentialDriveletter -Force | Out-Null
+                Write-Error  $_.Exception.Message
+                
+            }
+        }
+    }
+    
+    if (!$driveLetter) {
+        Write-Error 'Unable to mount file share because no drives were available'
+        
+    }
+
+    return $driveLetter
+}
+
 Function Get-KeyValueSecret($KeyVaultName, $KeyVaultToken, $SecretName) {
     $secretValue = $null
     $currentRetry = 0
@@ -49,7 +82,7 @@ Function Get-KeyValueSecret($KeyVaultName, $KeyVaultToken, $SecretName) {
     $requestUrl = "https://$KeyVaultName.vault.azure.net/secrets/$($SecretName)?api-version=2016-10-01"
     Write-Host "Getting value for $requestUrl"
 
-    while ($currentRetry -lt 10 -and $null -eq $secretValue) {
+    while ($currentRetry -lt 40 -and $null -eq $secretValue) {
         try {
             # Get KeyVault value	
             $secretValue = Invoke-WebRequest -Uri $requestUrl -Method GET -Headers @{Authorization = "Bearer $KeyVaultToken" } -UseBasicParsing | ConvertFrom-Json | select -expand value
@@ -73,25 +106,11 @@ Function Get-KeyValueSecret($KeyVaultName, $KeyVaultToken, $SecretName) {
 #
 # Main execution block.
 #
-
-Write-Output "Copy file to know location"
-New-Item -Path "$env:SystemDrive\" -Name "DeveloperDrive" -ItemType Directory -Force
-
-$origScriptLocation = Join-Path $PSScriptRoot  "user-drive.ps1"
-$devScriptLocation =  "$env:SystemDrive\DeveloperDrive\user-drive.ps1"
-
-Copy-Item -Path  $origScriptLocation -Destination $devScriptLocation
-
-
-
-(Get-Content $devScriptLocation).replace('[[sharename]]', $fileShareName) | Set-Content $devScriptLocation
-
-#Wait until keyvault access is granted before exiting
-
-$MaxRetries = 10
+$MaxRetries = 40
 $currentRetry = 0
 
 $KeyVaultName = "fileB2kv"
+
 
 if ($PSVersionTable.PSVersion.Major -lt 3) {
     throw "The current version of PowerShell is $($PSVersionTable.PSVersion.Major). Prior to running this artifact, ensure you have PowerShell 3 or higher installed."
@@ -127,4 +146,15 @@ Write-Output "$(Get-Date) End: Getting token for access to keyvault"
 
 Write-Output "$(Get-Date) Start: Getting secret from keyvault"
 $storageAccountName = Get-KeyValueSecret -KeyVaultName $KeyVaultName -KeyVaultToken $KeyVaultToken -SecretName 'DevFilesStorageAccountName'
+$storageAccountKey = Get-KeyValueSecret -KeyVaultName $KeyVaultName -KeyVaultToken $KeyVaultToken -SecretName 'DevFilesStorageAccountKey'
 Write-Output "$(Get-Date) End: Getting secret from keyvault"
+
+
+Write-Output "$(Get-Date) Mounting file share"
+Mount-FileShare -storageAccountName $storageAccountName -storageAccountKey $storageAccountKey -shareName $ShareName
+
+Write-Output "$(Get-Date) Adding credentials to Developer's Profile so drive can successfully remount on connection"
+$devCredential = New-Object System.Management.Automation.PSCredential ($UserName, $Password)
+Invoke-Expression -Command "cmdkey /add:$storageAccountName.file.core.windows.net /user:Azure\$storageAccountName /pass:$storageAccountKey"
+
+

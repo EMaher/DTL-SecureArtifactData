@@ -9,14 +9,32 @@
   "iconUri": "",
   "targetOsType": "Windows",
   "parameters": {
-    "FileShareName": {
-        "type": "string",
-        "displayName": "Name of file share",
-        "description": "Name of file share.",
-        "allowEmpty": false
+    "KeyVaultName": {
+      "type": "string",
+      "displayName": "KeyVault Name",
+      "description": "Name of keyvault that holds connection information for file share.",
+      "allowEmpty": false
+    },
+    "ShareName": {
+      "type": "string",
+      "displayName": "FileShare Name",
+      "description": "Name of file share.",
+      "allowEmpty": false
+    },
+    "UserName": {
+      "type": "string",
+      "displayName": "User Name.",
+      "description": "Name of developer account on virtual machine.",
+      "allowEmpty": false
+    },
+    "Password": {
+      "type": "securestring",
+      "displayName": "Password",
+      "description": "Password for developer account on the virtual machine.",
+      "allowEmpty": false
     }
   },
   "runCommand": {
-    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy bypass \"& ./artifact.ps1', ' -fileShareName \"', parameters('FileShareName'), '\"')]"
-    }
+    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy bypass \"& ./artifact.ps1', ' -KeyVaultName \"', parameters('KeyVaultName'), ' -ShareName \"', parameters('ShareName'), ' -UserName \"', parameters('UserName'), ' -Password \"', parameters('Password'), '\"')]"
+  }
 }
