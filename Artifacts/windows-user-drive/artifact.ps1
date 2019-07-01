@@ -3,7 +3,7 @@ param
 (
 	[Parameter(Mandatory = $true)][string]$KeyVaultName,
 	[Parameter(Mandatory=$true)][string]$ShareName,
-	[Parameter(Mondatory=$true)][string]$UserName,
+	[Parameter(Mandatory=$true)][string]$UserName,
 	[Parameter(Mandatory=$true)][securestring]$Password
 )
 
